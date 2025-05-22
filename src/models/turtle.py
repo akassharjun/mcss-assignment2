@@ -1,5 +1,5 @@
 from src.models.world import World
-
+from random import choice
 
 class Turtle:
     """
@@ -24,10 +24,31 @@ class Turtle:
 
     def move(self, world: World) -> None:
         """
-        Look in the four cardinal directions up to vision distance,
+        Look in all directions up to vision distance (Manhattan distance),
         choose one of the patches with the highest grain, and move there.
         """
+        candidates = []
 
+        for dx in range(-self.vision, self.vision + 1):
+            for dy in range(-self.vision, self.vision + 1):
+                # Use Manhattan distance to filter
+                if abs(dx) + abs(dy) > self.vision:
+                    continue
+
+                nx = self.x + dx
+                ny = self.y + dy
+
+                if 0 <= nx < world.width and 0 <= ny < world.height:
+                    patch = world.grid[ny][nx]
+                    grain = patch.get_grain_amount()
+                    candidates.append(((nx, ny), grain))
+
+        # Find patch(es) with highest grain
+        max_grain = max(grain for _, grain in candidates)
+        best_positions = [pos for pos, grain in candidates if grain == max_grain]
+
+        # Move to one of the best patches (randomly if tied)
+        self.x, self.y = choice(best_positions)
 
     def harvest_and_eat(self, world: World) -> None:
         """

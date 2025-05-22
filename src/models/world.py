@@ -83,7 +83,7 @@ class World:
             life_expectancy=life_expectancy,
             initial_wealth=self.uniform_wealth
         )
-        self.turtles.append(turtle)    
+        self.turtles.append(turtle)
         
         """
         Spawn initial turtles with random attributes and initial wealth strategy.
