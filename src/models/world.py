@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from src.models.patch import Patch
 from src.models.turtle import Turtle
-from random import shuffle, randint
+from random import shuffle, randint, sample
 
 class World:
     """
@@ -50,7 +50,7 @@ class World:
 
         # Randomly select unique positions for best land
         all_positions = [(x, y) for x in range(self.width) for y in range(self.height)]
-        best_land_positions = set(random.sample(all_positions, num_best_patches))
+        best_land_positions = set(sample(all_positions, num_best_patches))
 
         # Initialize the grid row by row
         self.grid = []
