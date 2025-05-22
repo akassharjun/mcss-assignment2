@@ -1,3 +1,6 @@
+from src.models.world import World
+
+
 class Turtle:
     """
     Represents a turtle with vision, metabolism, life expectancy, and wealth.
@@ -19,14 +22,14 @@ class Turtle:
         self.age = 0
         self.wealth = initial_wealth
 
-    def move(self, world) -> None:
+    def move(self, world: World) -> None:
         """
         Look in the four cardinal directions up to vision distance,
         choose one of the patches with the highest grain, and move there.
         """
 
 
-    def harvest_and_eat(self, world: 'World') -> None:
+    def harvest_and_eat(self, world: World) -> None:
         """
         Harvest grain on current patch, add to wealth, then consume metabolism.
         """
