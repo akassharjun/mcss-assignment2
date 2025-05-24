@@ -20,6 +20,7 @@ class World:
             min_life_expectancy: int = 60,
             max_life_expectancy: int = 100,
             uniform_wealth: int = 50,
+            max_grain = 4
     ):
         self.width = width
         self.height = height
@@ -57,7 +58,7 @@ class World:
         for y in range(self.height):
             row = []
             for x in range(self.width):
-                max_grain = 4 if (x, y) in best_land_positions else 1
+                max_grain = max_grain if (x, y) in best_land_positions else 1
                 patch = Patch(x=x, y=y, max_grain=max_grain)
                 row.append(patch)
             self.grid.append(row)    
