@@ -1,9 +1,8 @@
 from typing import List, Tuple
 from src.models.patch import Patch
 from src.models.turtle import Turtle
+from src.models.wealth_classifier import WealthClass, WealthClassifier
 from random import shuffle, randint, sample
-
-from wealth_classifier import WealthClass, WealthClassifier
 
 
 class World:
@@ -74,15 +73,20 @@ class World:
     def _init_turtles(self) -> None:
         """
         Spawn initial turtles with random attributes and initial wealth strategy.
+        After all turtles are created, classify them based on wealth distribution.
         """
         # Generate and shuffle all valid positions
         all_positions = [(x, y) for x in range(self.width) for y in range(self.height)]
         shuffle(all_positions)
         selected_positions = all_positions[:self.num_turtles]
 
+        # First, create all turtles with their initial wealth
         for i, (x, y) in enumerate(selected_positions):
             turtle = self._init_turtle(i, x, y)
             self.turtles.append(turtle)
+        
+        # After all turtles are created, update and classify all turtles
+        self.update_all_wealth_classes()
 
     def _init_turtle(self, i, x, y) -> Turtle:
         metabolism = randint(1, self.max_metabolism)
@@ -96,7 +100,7 @@ class World:
             metabolism=metabolism,
             vision=vision,
             life_expectancy=life_expectancy,
-            initial_wealth=randint(0, 50),
+            initial_wealth=randint(metabolism, 50)
         )
 
         return turtle
@@ -191,9 +195,8 @@ class World:
         if not self.turtles:
             return
 
-        # Get all turtle wealth values
-        wealth_values = [turtle.wealth for turtle in self.turtles]
-        max_wealth = max(wealth_values)
+        # Calculate max wealth
+        max_wealth = max(turtle.wealth for turtle in self.turtles)
 
         # Update each turtle's wealth class
         for turtle in self.turtles:
@@ -249,6 +252,9 @@ class World:
                 self.turtles.remove(turtle)
                 turtle = self._init_turtle(turtle.id, turtle.x, turtle.y)
                 self.turtles.append(turtle)
+
+        # Update wealth classes after all turtles have acted
+        self.update_all_wealth_classes()
 
         total_wealth = self.get_total_wealth()
         max_wealth = self.get_max_wealth()
