@@ -186,7 +186,7 @@ class World:
         return gini
 
     # Pass the current maximum wealth of the system and the max x value to plot
-    def calculate_lorenz_list(self, max_wealth, max_x=100) -> List[float]:
+    def calculate_lorenz_list(self, max_wealth, max_x=100) -> List[(int,float)]:
         max_wealth = max_wealth
         group_size = floor(self.num_turtles/max_x)
         sorted_agents = sorted(self.turtles, key=lambda t: t.wealth)
@@ -196,12 +196,12 @@ class World:
         
         for t in range(0,max_x+1):
             if t == 0:
-                result.append(0,0)
+                result.append((0,0))
                 continue
             agent_group = sorted_agents[t-1:t+group_size]
-            acc_wealth += sum(t.wealth for t in agent_group)
+            acc_wealth += sum(g.wealth for g in agent_group)
             wealth_percentage = acc_wealth/max_wealth
-            result.append(t, wealth_percentage)
+            result.append((t, wealth_percentage))
             
         return result
 
