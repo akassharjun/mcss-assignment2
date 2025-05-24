@@ -3,7 +3,7 @@ from .patch import Patch
 from .turtle import Turtle
 from random import shuffle, randint, sample
 from math import floor
-
+from typing import List, Tuple
 
 from .wealth_classifier import WealthClass, WealthClassifier
 
@@ -186,23 +186,24 @@ class World:
         return gini
 
     # Pass the current maximum wealth of the system and the max x value to plot
-    def calculate_lorenz_list(self, max_wealth, max_x=100) -> List[(int,float)]:
-        max_wealth = max_wealth
-        group_size = floor(self.num_turtles/max_x)
+    def calculate_lorenz_list(self, max_wealth, max_x=100) -> List[Tuple[float, float]]:
+        group_size = floor(self.num_turtles / max_x)
         sorted_agents = sorted(self.turtles, key=lambda t: t.wealth)
-        
+
         acc_wealth = 0
-        result = []
-        
-        for t in range(0,max_x+1):
-            if t == 0:
-                result.append((0,0))
-                continue
-            agent_group = sorted_agents[t-1:t+group_size]
-            acc_wealth += sum(g.wealth for g in agent_group)
-            wealth_percentage = acc_wealth/max_wealth
-            result.append((t, wealth_percentage))
-            
+        result = [(0.0, 0.0)]  # Start from origin
+
+        for i in range(1, max_x + 1):
+            start_idx = (i - 1) * group_size
+            end_idx = i * group_size
+            agent_group = sorted_agents[start_idx:end_idx]
+
+            acc_wealth += sum(agent.wealth for agent in agent_group)
+
+            pop_fraction = i / max_x
+            wealth_fraction = acc_wealth / max_wealth
+            result.append((pop_fraction, wealth_fraction))
+
         return result
 
     def update_all_wealth_classes(self) -> None:
