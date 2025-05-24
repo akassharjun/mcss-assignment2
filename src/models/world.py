@@ -186,7 +186,7 @@ class World:
         return gini
 
     # Pass the current maximum wealth of the system and the max x value to plot
-    def calculate_lorenz_list(self, max_wealth, max_x=100) -> List[Tuple[float, float]]:
+    def calculate_lorenz_list(self, total_wealth, max_x=100) -> List[Tuple[float, float]]:
         group_size = floor(self.num_turtles / max_x)
         sorted_agents = sorted(self.turtles, key=lambda t: t.wealth)
 
@@ -201,7 +201,7 @@ class World:
             acc_wealth += sum(agent.wealth for agent in agent_group)
 
             pop_fraction = i / max_x
-            wealth_fraction = acc_wealth / max_wealth
+            wealth_fraction = acc_wealth / total_wealth
             result.append((pop_fraction, wealth_fraction))
 
         return result
@@ -284,5 +284,5 @@ class World:
             'total_wealth': total_wealth,
             'max_wealth': max_wealth,
             'gini_index': self.calculate_gini_index(),
-            'lorenz_list': self.calculate_lorenz_list(max_wealth),
+            'lorenz_list': self.calculate_lorenz_list(total_wealth),
         }
