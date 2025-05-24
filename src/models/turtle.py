@@ -1,10 +1,19 @@
-from src.models.world import World
+from __future__ import annotations
+from typing import TYPE_CHECKING
+from wealth_classifier import WealthClass, WealthClassifier
 from random import choice
+
+if TYPE_CHECKING:
+    from src.models.world import World
+
 
 class Turtle:
     """
     Represents a turtle with vision, metabolism, life expectancy, and wealth.
+    Each turtle is assigned to a wealth class (poor, middle class, rich) based on their wealth
+    relative to the richest turtle in the population.
     """
+
     def __init__(self,
                  id: int,
                  x: int,
@@ -12,7 +21,8 @@ class Turtle:
                  metabolism: int,
                  vision: int,
                  life_expectancy: int,
-                 initial_wealth: int = 0):
+                 initial_wealth: int = 0,
+                 wealth_class: WealthClass = WealthClass.POOR):
         self.id = id
         self.x = x
         self.y = y
@@ -21,8 +31,9 @@ class Turtle:
         self.life_expectancy = life_expectancy
         self.age = 0
         self.wealth = initial_wealth
+        self.wealth_class = wealth_class
 
-    def move(self, world: World) -> None:
+    def move(self, world: "World") -> None:
         """
         Look in all directions up to vision distance (Manhattan distance),
         choose one of the patches with the highest grain, and move there.
@@ -50,14 +61,37 @@ class Turtle:
         # Move to one of the best patches (randomly if tied)
         self.x, self.y = choice(best_positions)
 
-    def harvest_and_eat(self, world: World) -> None:
+    def harvest_and_eat(self, world: "World") -> None:
         """
         Harvest grain on current patch, add to wealth, then consume metabolism.
+        After metabolism, update the wealth class based on new wealth.
         """
         patch = world.grid[self.y][self.x]
         gained = patch.harvest()
         self.wealth += gained
         self.wealth -= self.metabolism
+
+        # Update wealth class after metabolism changes wealth
+        self.update_wealth_class(world)
+
+    def update_wealth_class(self, world: "World") -> None:
+        """
+        Update the turtle's wealth class based on current wealth relative to
+        the richest turtle in the population. This method should be called
+        after any change in wealth (e.g., after harvest_and_eat).
+
+        Args:
+            world: The world object containing all turtles to determine max wealth
+        """
+        if not world.turtles:
+            self.wealth_class = WealthClass.POOR
+            return
+
+        # Get maximum wealth in the population
+        max_wealth = max(turtle.wealth for turtle in world.turtles)
+
+        # Classify this turtle based on its wealth relative to max wealth
+        self.wealth_class = WealthClassifier.classify_agent(self.wealth, max_wealth)
 
     def increment_age(self) -> None:
         """
@@ -70,3 +104,12 @@ class Turtle:
         Returns True if the turtle has zero or negative wealth or exceeded life expectancy.
         """
         return self.wealth <= 0 or self.age > self.life_expectancy
+
+    def get_wealth_class_name(self) -> str:
+        """
+        Get the string representation of the turtle's wealth class.
+
+        Returns:
+            str: The wealth class name ('poor', 'middle_class', or 'rich')
+        """
+        return self.wealth_class.value
