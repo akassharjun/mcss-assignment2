@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from wealth_classifier import WealthClass, WealthClassifier
+from src.models.wealth_classifier import WealthClass, WealthClassifier
 from random import choice
 
 if TYPE_CHECKING:

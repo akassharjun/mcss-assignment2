@@ -3,7 +3,7 @@ from src.models.patch import Patch
 from src.models.turtle import Turtle
 from random import shuffle, randint, sample
 
-from wealth_classifier import WealthClass, WealthClassifier
+from src.models.wealth_classifier import WealthClass, WealthClassifier
 
 
 class World:
@@ -96,7 +96,7 @@ class World:
             metabolism=metabolism,
             vision=vision,
             life_expectancy=life_expectancy,
-            initial_wealth=randint(0, 50),
+            initial_wealth=randint(metabolism, 50),
         )
 
         return turtle
@@ -258,4 +258,6 @@ class World:
             'min_wealth': min_wealth,
             'total_wealth': total_wealth,
             'max_wealth': max_wealth,
+            'gini_index': self.calculate_gini_index(),
+            'lorenz_list': self.calculate_lorenz_list(),
         }
