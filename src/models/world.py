@@ -283,5 +283,5 @@ class World:
             'total_wealth': total_wealth,
             'max_wealth': max_wealth,
             'gini_index': self.calculate_gini_index(),
-            'lorenz_list': self.calculate_lorenz_list(),
+            'lorenz_list': self.calculate_lorenz_list(max_wealth),
         }
