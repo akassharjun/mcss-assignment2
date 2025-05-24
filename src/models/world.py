@@ -202,7 +202,7 @@ class World:
 
             pop_fraction = i / max_x
             wealth_fraction = acc_wealth / total_wealth
-            result.append((pop_fraction, wealth_fraction))
+            result.append((pop_fraction*100, wealth_fraction*100))
 
         return result
 
