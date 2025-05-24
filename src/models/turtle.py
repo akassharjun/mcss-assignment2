@@ -1,10 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from wealth_classifier import WealthClass, WealthClassifier
+
 from random import choice
 
-if TYPE_CHECKING:
-    from src.models.world import World
+from .wealth_classifier import WealthClass
 
 
 class Turtle:
@@ -75,28 +73,6 @@ class Turtle:
         gained = patch.harvest()
         self.wealth += gained
         self.wealth -= self.metabolism
-
-        # Update wealth class after metabolism changes wealth
-        self.update_wealth_class(world)
-
-    def update_wealth_class(self, world: "World") -> None:
-        """
-        Update the turtle's wealth class based on current wealth relative to
-        the richest turtle in the population. This method should be called
-        after any change in wealth (e.g., after harvest_and_eat).
-
-        Args:
-            world: The world object containing all turtles to determine max wealth
-        """
-        if not world.turtles:
-            self.wealth_class = WealthClass.POOR
-            return
-
-        # Get maximum wealth in the population
-        max_wealth = max(turtle.wealth for turtle in world.turtles)
-
-        # Classify this turtle based on its wealth relative to max wealth
-        self.wealth_class = WealthClassifier.classify_agent(self.wealth, max_wealth)
 
     def increment_age(self) -> None:
         """
