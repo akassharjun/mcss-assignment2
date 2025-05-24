@@ -1,7 +1,7 @@
 from typing import List, Tuple
-from src.models.patch import Patch
-from src.models.turtle import Turtle
-from src.models.wealth_classifier import WealthClass, WealthClassifier
+from patch import Patch
+from turtle import Turtle
+from wealth_classifier import WealthClass, WealthClassifier
 from random import shuffle, randint, sample
 
 

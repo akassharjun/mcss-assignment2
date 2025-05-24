@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from src.models.wealth_classifier import WealthClass, WealthClassifier
+from wealth_classifier import WealthClass
 from random import choice
 
 if TYPE_CHECKING:
-    from src.models.world import World
+    from world import World
 
 
 class Turtle:
