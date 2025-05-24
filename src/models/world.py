@@ -3,7 +3,7 @@ from src.models.patch import Patch
 from src.models.turtle import Turtle
 from random import shuffle, randint, sample
 
-from wealth_classifier import WealthClass, WealthClassifier
+from src.models.wealth_classifier import WealthClass, WealthClassifier
 
 
 class World:
