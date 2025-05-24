@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 from .patch import Patch
 from .turtle import Turtle
 from random import shuffle, randint, sample
@@ -82,9 +82,13 @@ class World:
         shuffle(all_positions)
         selected_positions = all_positions[:self.num_turtles]
 
+        # Create all turtles first
         for i, (x, y) in enumerate(selected_positions):
             turtle = self._init_turtle(i, x, y)
             self.turtles.append(turtle)
+        
+        # After all turtles are created, classify them based on wealth distribution
+        self.update_all_wealth_classes()
 
     def _init_turtle(self, i, x, y) -> Turtle:
         metabolism = randint(1, self.max_metabolism)
