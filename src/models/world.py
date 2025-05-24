@@ -3,7 +3,7 @@ from src.models.patch import Patch
 from src.models.turtle import Turtle
 from random import shuffle, randint, sample
 
-from src.models.wealth_classifier import WealthClass, WealthClassifier
+from wealth_classifier import WealthClass, WealthClassifier
 
 
 class World:
@@ -96,7 +96,7 @@ class World:
             metabolism=metabolism,
             vision=vision,
             life_expectancy=life_expectancy,
-            initial_wealth=randint(metabolism, 50),
+            initial_wealth=randint(metabolism, 50)
         )
 
         return turtle
@@ -191,9 +191,8 @@ class World:
         if not self.turtles:
             return
 
-        # Get all turtle wealth values
-        wealth_values = [turtle.wealth for turtle in self.turtles]
-        max_wealth = max(wealth_values)
+        # Calculate max wealth
+        max_wealth = max(turtle.wealth for turtle in self.turtles)
 
         # Update each turtle's wealth class
         for turtle in self.turtles:
@@ -249,6 +248,9 @@ class World:
                 self.turtles.remove(turtle)
                 turtle = self._init_turtle(turtle.id, turtle.x, turtle.y)
                 self.turtles.append(turtle)
+
+        # Update wealth classes after all turtles have acted
+        self.update_all_wealth_classes()
 
         total_wealth = self.get_total_wealth()
         max_wealth = self.get_max_wealth()
