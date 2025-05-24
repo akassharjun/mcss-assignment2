@@ -34,6 +34,7 @@ class World:
         self.max_metabolism = max_metabolism
         self.min_life_expectancy = min_life_expectancy
         self.max_life_expectancy = max_life_expectancy
+
         self.grain_growth_interval = grain_growth_interval
         self.max_grain = max_grain
         self.uniform_wealth = uniform_wealth
