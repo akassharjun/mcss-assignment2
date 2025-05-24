@@ -1,8 +1,6 @@
 from __future__ import annotations
-
-from random import choice
-
 from .wealth_classifier import WealthClass
+from random import choice
 
 
 class Turtle:
@@ -67,7 +65,6 @@ class Turtle:
     def harvest_and_eat(self, world: "World") -> None:
         """
         Harvest grain on current patch, add to wealth, then consume metabolism.
-        After metabolism, update the wealth class based on new wealth.
         """
         patch = world.grid[self.y][self.x]
         gained = patch.harvest()
