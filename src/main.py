@@ -1,4 +1,4 @@
-from src.models.world import World
+from models.world import World
 
 
 def main():

@@ -1,9 +1,9 @@
 from typing import List, Tuple
-from src.models.patch import Patch
-from src.models.turtle import Turtle
+from .patch import Patch
+from .turtle import Turtle
 from random import shuffle, randint, sample
 
-from src.models.wealth_classifier import WealthClass, WealthClassifier
+from .wealth_classifier import WealthClass, WealthClassifier
 
 
 class World:
@@ -140,7 +140,6 @@ class World:
         """
         # sum() on an empty generator expression or list conveniently returns 0
         return sum(turtle.wealth for turtle in self.turtles)
-
 
     def calculate_gini_index(self) -> float:
         """

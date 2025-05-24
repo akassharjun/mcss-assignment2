@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from src.models.wealth_classifier import WealthClass, WealthClassifier
+
 from random import choice
+
+from .wealth_classifier import WealthClass
 
 
 class Turtle:
