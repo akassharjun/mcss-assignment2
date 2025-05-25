@@ -254,19 +254,19 @@ class World:
         return [turtle for turtle in self.turtles if turtle.wealth_class == wealth_class]
 
     def tick(self, tick_count: int) -> dict:
-        # patch actions
-        # check
+    # patch actions
         if tick_count % self.grain_growth_interval == 0:
             for coord in self.grid:
                 for patch in coord:
                     patch.grow_grain()
 
         # turtle actions
-        # move, harvest, eat, check death
+        # move, harvest, eat, age, check death
         for turtle in list(self.turtles):
             turtle.move(self)
             turtle.harvest_and_eat(self)
-
+            turtle.increment_age()
+            
             if turtle.is_dead():
                 self.turtles.remove(turtle)
                 turtle = self._init_turtle(turtle.id, turtle.x, turtle.y)
