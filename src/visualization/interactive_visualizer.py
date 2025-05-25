@@ -150,7 +150,7 @@ class InteractiveWealthVisualizer:
         
         # Speed control slider
         speed_ax = plt.axes([0.45, 0.03, 0.25, 0.03])
-        self.speed_slider = Slider(speed_ax, 'Speed', 0.1, 3.0, valinit=1.0)
+        self.speed_slider = Slider(speed_ax, 'Speed', 0.1, 5.0, valinit=1.0)
         self.speed_slider.label.set_size(10)
         
         # Tick counter display
