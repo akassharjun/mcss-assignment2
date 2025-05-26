@@ -3,7 +3,7 @@ from matplotlib.widgets import Button, Slider
 from matplotlib.animation import FuncAnimation
 from typing import Dict
 
-from src.models.world import World
+from models.world import World
 
 
 class InteractiveWealthVisualizer:

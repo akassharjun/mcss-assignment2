@@ -16,17 +16,18 @@ class World:
 
     def __init__(
             self,
-            width: int = 50,
-            height: int = 50,
-            num_turtles: int = 100,
-            percent_best_land: float = 0.2,
-            max_vision: int = 6,
-            max_metabolism: int = 3,
-            min_life_expectancy: int = 60,
-            max_life_expectancy: int = 100,
+            width: int = 51,
+            height: int = 51,
+            num_turtles: int = 250,
+            percent_best_land: float = 10.0,
+            max_vision: int = 5,
+            max_metabolism: int = 15,
+            min_life_expectancy: int = 1,
+            max_life_expectancy: int = 83,
             uniform_wealth: int = 50,
-            max_grain=4,
-            grain_growth_interval: int = 4,
+            max_grain=50,
+            grain_growth_interval: int = 1,
+            num_grain_grown: int = 4,
             inheritance_flag: bool = False,
             uniform_wealth_flag: bool = False,
     ):
@@ -40,7 +41,9 @@ class World:
         self.max_life_expectancy = max_life_expectancy
 
         self.grain_growth_interval = grain_growth_interval
-        self.max_grain = max_grain
+        self.max_grain = max_grain  # Global maximum grain value
+        self.num_grain_grown = num_grain_grown  # How much grain grows each interval
+
         self.uniform_wealth = uniform_wealth
 
         self.grid: List[List[Patch]] = []
@@ -59,26 +62,108 @@ class World:
 
     def _init_grid(self) -> None:
         """
-        Initialize the grid of patches, assigning high-resource (best land)
-        to a percentage of patches.
+        Initialize the grid of patches with NetLogo-style diffusion setup.
         """
         # Calculate how many patches are considered best land
         total_patches = self.width * self.height
-        num_best_patches = int(total_patches * self.percent_best_land)
+        num_best_patches = int(total_patches * (self.percent_best_land / 100.0))
 
-        # Randomly select unique positions for best land
-        all_positions = [(x, y) for x in range(self.width) for y in range(self.height)]
-        best_land_positions = set(sample(all_positions, num_best_patches))
-
-        # Initialize the grid row by row
+        # Initialize all patches with 0 grain first
         self.grid = []
         for y in range(self.height):
             row = []
             for x in range(self.width):
-                max_grain = self.max_grain if (x, y) in best_land_positions else 1
-                patch = Patch(x=x, y=y, max_grain=max_grain)
+                patch = Patch(x=x, y=y, max_grain=0)
                 row.append(patch)
             self.grid.append(row)
+
+        # Randomly select positions for best land patches
+        all_positions = [(x, y) for x in range(self.width) for y in range(self.height)]
+        best_land_positions = set(sample(all_positions, num_best_patches))
+
+        # Set best land patches to have maximum grain capacity
+        for x, y in best_land_positions:
+            self.grid[y][x].max_grain = self.max_grain
+            self.grid[y][x].current_grain = self.max_grain
+
+        # Apply NetLogo-style diffusion during setup
+        self._apply_setup_diffusion()
+
+        # Set max_grain for each patch based on final grain amounts after diffusion
+        for y in range(self.height):
+            for x in range(self.width):
+                patch = self.grid[y][x]
+                patch.max_grain = patch.current_grain  # Maximum capacity = initial amount
+
+
+    def _apply_setup_diffusion(self) -> None:
+        """
+        Apply NetLogo-style diffusion during setup to create grain gradients.
+        This replicates the NetLogo setup-patches procedure.
+        """
+        # Phase 1: Repeat 5 times - restore best land and diffuse
+        for _ in range(5):
+            # Restore best land patches to full grain
+            for y in range(self.height):
+                for x in range(self.width):
+                    patch = self.grid[y][x]
+                    if patch.max_grain == self.max_grain:  # This is best land
+                        patch.current_grain = self.max_grain
+            
+            # Diffuse with factor 0.25
+            self._diffuse_grain(0.25)
+
+        # Phase 2: Repeat 10 more times - just diffuse
+        for _ in range(10):
+            self._diffuse_grain(0.25)
+
+        # Round grain levels to whole numbers and ensure non-negative
+        for y in range(self.height):
+            for x in range(self.width):
+                patch = self.grid[y][x]
+                patch.current_grain = max(0, int(patch.current_grain))
+
+    
+    def _diffuse_grain(self, diffusion_rate: float) -> None:
+        """
+        Implement NetLogo-style diffusion algorithm.
+        Each patch shares a portion of its grain with its 4 neighbors.
+        """
+        # Create a copy of current grain values
+        new_grain = [[0.0 for _ in range(self.width)] for _ in range(self.height)]
+        
+        # Calculate new grain values based on diffusion
+        for y in range(self.height):
+            for x in range(self.width):
+                current_grain = self.grid[y][x].current_grain
+                
+                # Amount this patch keeps
+                kept_grain = current_grain * (1.0 - diffusion_rate)
+                
+                # Amount to distribute to neighbors
+                diffused_grain = current_grain * diffusion_rate
+                
+                # Find valid neighbors (4-connected)
+                neighbors = []
+                for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < self.width and 0 <= ny < self.height:
+                        neighbors.append((nx, ny))
+                
+                # This patch keeps its portion
+                new_grain[y][x] += kept_grain
+                
+                # Distribute to neighbors
+                if neighbors:
+                    grain_per_neighbor = diffused_grain / len(neighbors)
+                    for nx, ny in neighbors:
+                        new_grain[ny][nx] += grain_per_neighbor
+
+        # Update all patches with new grain values
+        for y in range(self.height):
+            for x in range(self.width):
+                self.grid[y][x].current_grain = new_grain[y][x]
+
 
     def _init_turtles(self) -> None:
         """
@@ -98,6 +183,10 @@ class World:
         self.update_all_wealth_classes()
 
     def _init_turtle(self, i, x, y, inheritance) -> Turtle:
+        """
+        Initialize turtle with compatible parameters.
+        """
+        # Generate random attributes
         metabolism = randint(1, self.max_metabolism)
         vision = randint(1, self.max_vision)
         life_expectancy = randint(self.min_life_expectancy, self.max_life_expectancy)
@@ -107,7 +196,7 @@ class World:
         elif inheritance > 0:
             initial_wealth = inheritance
         else:
-            initial_wealth = randint(metabolism, 50)
+            initial_wealth = metabolism + randint(0, 50)
 
         turtle = Turtle(
             id=i,
@@ -124,10 +213,6 @@ class World:
     def get_max_wealth(self) -> float:
         """
         Calculates and returns the maximum wealth among all turtles.
-
-        Returns:
-            float: The maximum wealth found.
-                   Returns 0.0 if there are no turtles (assuming wealth is non-negative).
         """
         if not self.turtles:
             return 0.0
@@ -136,18 +221,8 @@ class World:
     def get_min_wealth(self) -> float:
         """
         Calculates and returns the minimum wealth among all turtles.
-
-        Returns:
-            float: The minimum wealth found.
-                   Returns 0.0 if there are no turtles (this might be ambiguous
-                   if 0 is a valid minimum wealth for a non-empty set;
-                   consider float('inf') or raising an error if more specific
-                   behavior is needed for an empty set and wealth can be anything).
-                   Assuming non-negative wealth, 0.0 is a common default.
         """
         if not self.turtles:
-            # If wealth could be negative, float('inf') would be a better default,
-            # or raising a ValueError. For non-negative wealth, 0.0 is often okay.
             return 0.0
         return min(turtle.wealth for turtle in self.turtles)
 
@@ -158,29 +233,20 @@ class World:
         Returns:
             float: The total wealth. Returns 0.0 if there are no turtles.
         """
-        # sum() on an empty generator expression or list conveniently returns 0
         return sum(turtle.wealth for turtle in self.turtles)
 
     def calculate_gini_index(self) -> float:
         """
         Calculates the Gini index, a measure of wealth inequality.
-        Requires non-negative wealth values for standard interpretation.
-        Returns a float between 0 (perfect equality) and 1 (maximal inequality).
         """
         if not self.turtles or len(self.turtles) < 2:
-            # Gini is undefined or 0 for a single individual or no individuals.
-            # For a single individual, they have 100% of the wealth, Lorenz is (0,0) -> (1,1).
-            # Gini would be 0.
             return 0.0
-
-        # Use non-negative wealths, sorted
-        # Standard Gini calculation assumes non-negative values.
+        
         wealths = sorted([max(0, turtle.wealth) for turtle in self.turtles])
         n = len(wealths)
         total_wealth = sum(wealths)
 
         if total_wealth == 0:
-            # If all wealths are 0 (after capping), it's perfect equality.
             return 0.0
 
         # Using the formula: Gini = ( Σ (2i - n - 1) * y_i ) / ( n * Σ y_i )
@@ -192,8 +258,7 @@ class World:
             numerator += (2 * (i + 1) - n - 1) * wealth_val
 
         denominator = n * total_wealth
-
-        if denominator == 0:  # Should be caught by total_wealth == 0 earlier, but good check
+        if denominator == 0:
             return 0.0
 
         gini = numerator / denominator
@@ -201,46 +266,45 @@ class World:
 
     # Pass the current maximum wealth of the system and the max x value to plot
     def calculate_lorenz_list(self, total_wealth, max_x=100) -> List[Tuple[float, float]]:
-        group_size = floor(self.num_turtles / max_x)
-        sorted_agents = sorted(self.turtles, key=lambda t: t.wealth)
-
-        acc_wealth = 0
+        if not self.turtles or total_wealth <= 0:
+            return [(0.0, 0.0), (100.0, 100.0)]
+        
+        # Sort turtles by wealth (poorest to richest)
+        sorted_turtles = sorted(self.turtles, key=lambda t: t.wealth)
+        n_turtles = len(sorted_turtles)
+        
         result = [(0.0, 0.0)]  # Start from origin
-
+        
         for i in range(1, max_x + 1):
-            start_idx = (i - 1) * group_size
-            end_idx = i * group_size
-            agent_group = sorted_agents[start_idx:end_idx]
-
-            acc_wealth += sum(agent.wealth for agent in agent_group)
-
-            pop_fraction = i / max_x
-            wealth_fraction = acc_wealth / total_wealth
-            result.append((pop_fraction * 100, wealth_fraction * 100))
-
+            # Find turtle index for this population percentage
+            turtle_index = int((i * n_turtles) / max_x) - 1
+            turtle_index = min(turtle_index, n_turtles - 1)
+            
+            # Sum actual individual wealths (no averaging!)
+            cumulative_wealth = sum(turtle.wealth for turtle in sorted_turtles[:turtle_index + 1])
+            
+            pop_percent = (i / max_x) * 100
+            wealth_percent = (cumulative_wealth / total_wealth) * 100
+            
+            result.append((pop_percent, wealth_percent))
+        
         return result
 
     def update_all_wealth_classes(self) -> None:
         """
         Update wealth classes for all turtles based on current wealth distribution.
-        This should be called after any simulation step that changes turtle wealth.
         """
         if not self.turtles:
             return
 
-        # Calculate max wealth
         max_wealth = max(turtle.wealth for turtle in self.turtles)
 
-        # Update each turtle's wealth class
         for turtle in self.turtles:
             turtle.wealth_class = WealthClassifier.classify_agent(turtle.wealth, max_wealth)
 
     def get_wealth_class_distribution(self) -> dict:
         """
         Get the current distribution of wealth classes.
-
-        Returns:
-            dict: Dictionary with class names as keys and counts as values
         """
         wealth_classes = [turtle.wealth_class for turtle in self.turtles]
         return WealthClassifier.get_class_distribution(wealth_classes)
@@ -248,9 +312,6 @@ class World:
     def get_wealth_class_percentages(self) -> dict:
         """
         Get the current percentage distribution of wealth classes.
-
-        Returns:
-            dict: Dictionary with class names as keys and percentages as values
         """
         wealth_classes = [turtle.wealth_class for turtle in self.turtles]
         return WealthClassifier.get_class_percentages(wealth_classes)
@@ -258,42 +319,81 @@ class World:
     def get_turtles_by_class(self, wealth_class: WealthClass) -> List[Turtle]:
         """
         Get all turtles belonging to a specific wealth class.
-
-        Args:
-            wealth_class: The wealth class to filter by
-
-        Returns:
-            List[Turtle]: List of turtles in the specified wealth class
         """
         return [turtle for turtle in self.turtles if turtle.wealth_class == wealth_class]
+    
+    def harvest_grain(self) -> None:
+        """
+        Shared harvesting where multiple turtles split grain on same patch.
+        """
+        # Group turtles by their location
+        patch_turtles = {}
+        for turtle in self.turtles:
+            key = (turtle.x, turtle.y)
+            if key not in patch_turtles:
+                patch_turtles[key] = []
+            patch_turtles[key].append(turtle)
+
+        # For each patch with turtles, split the grain among them
+        for (x, y), turtles_on_patch in patch_turtles.items():
+            patch = self.grid[y][x]
+            total_grain = patch.current_grain
+            
+            if total_grain > 0 and turtles_on_patch:
+                grain_per_turtle = total_grain / len(turtles_on_patch)
+                
+                # Give each turtle their share
+                for turtle in turtles_on_patch:
+                    turtle.wealth += grain_per_turtle
+                
+                # Patch is now empty
+                patch.current_grain = 0
 
     def tick(self, tick_count: int) -> dict:
-        # patch actions
-        if tick_count % self.grain_growth_interval == 0:
-            for coord in self.grid:
-                for patch in coord:
-                    patch.grow_grain()
+        """
+        Execute one simulation step following NetLogo order of operations.
+        """
 
-        # turtle actions
-        # move, harvest, eat, age, check death
-        for turtle in list(self.turtles):
+         # 1. Turtle movement phase
+        for turtle in self.turtles:
             turtle.move(self)
-            turtle.harvest_and_eat(self)
+
+        # 2. Harvesting phase (shared harvesting like NetLogo)
+        self.harvest_grain()
+
+        # 3. Eating and aging phase
+        dead_turtles = []
+        for turtle in list(self.turtles):
+            turtle.eat()  # Consume metabolism
             turtle.increment_age()
-
+            
             if turtle.is_dead():
-                self.turtles.remove(turtle)
+                dead_turtles.append(turtle)
 
-                if self.inheritance_flag and turtle.wealth > 0:
-                    turtle = self._init_turtle(turtle.id, turtle.x, turtle.y, turtle.wealth)
-                else:
-                    turtle = self._init_turtle(turtle.id, turtle.x, turtle.y, 0)
+        # 4. Death and rebirth phase
+        for turtle in dead_turtles:
+            self.turtles.remove(turtle)
+            # Create new turtle at random location (not inherited position)
+            new_x = randint(0, self.width - 1)
+            new_y = randint(0, self.height - 1)
 
-                self.turtles.append(turtle)
+            if self.inheritance_flag and turtle.wealth > 0:
+                new_turtle = self._init_turtle(turtle.id, new_x, new_y, turtle.wealth)
+            else:
+                new_turtle = self._init_turtle(turtle.id, new_x, new_y, 0)
 
-        # Update wealth classes after all turtles have acted
+            self.turtles.append(new_turtle)
+
+        # 5. Patch grain growth
+        if tick_count % self.grain_growth_interval == 0:
+            for row in self.grid:
+                for patch in row:
+                    patch.grow_grain(self.num_grain_grown)
+
+        # Update wealth classes after all changes
         self.update_all_wealth_classes()
 
+        # Calculate metrics
         total_wealth = self.get_total_wealth()
         max_wealth = self.get_max_wealth()
         min_wealth = self.get_min_wealth()

@@ -7,15 +7,17 @@ class Patch:
         self.x = x
         self.y = y
         self.max_grain = max_grain
-        # initialize current grain to the maximum
+        # Initialize current grain to the maximum (will be modified during diffusion)
         self.current_grain = max_grain
 
-    def grow_grain(self) -> None:
+    def grow_grain(self, growth_amount: int = 1) -> None:
         """
-        Increase current grain by one up to the maximum capacity.
+        Increase current grain by growth_amount up to the maximum capacity.
+        This matches NetLogo's configurable num-grain-grown parameter.
         """
         if self.current_grain < self.max_grain:
-            self.current_grain += 1
+            self.current_grain = min(self.max_grain, self.current_grain + growth_amount)
+
 
     def harvest(self) -> int:
         """
@@ -30,4 +32,4 @@ class Patch:
         """
         Return the current grain amount on this patch.
         """
-        return self.current_grain
+        return int(self.current_grain) 

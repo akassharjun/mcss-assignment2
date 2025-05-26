@@ -1,6 +1,5 @@
 from __future__ import annotations
 from .wealth_classifier import WealthClass
-from random import choice
 
 
 class Turtle:
@@ -29,46 +28,78 @@ class Turtle:
         self.wealth = initial_wealth
         self.wealth_class = wealth_class
 
-    def move(self, world: "World") -> None:
+    def move(self, world) -> None:
         """
-        Look in the four cardinal directions up to vision distance,
-        choose one of the patches with the highest grain, and move there.
+        NetLogo-compatible movement algorithm.
+        Look in 4 cardinal directions, sum grain in each direction up to vision distance,
+        then move one step toward the direction with the most total grain.
         """
-        candidates = []
-
+        # Four cardinal directions: North, East, South, West (0°, 90°, 180°, 270°)
         directions = [
-            (1, 0),    # Right
-            (-1, 0),   # Left
-            (0, -1),   # Up
-            (0, 1)     # Down
+            (0, -1),   # North (up)
+            (1, 0),    # East (right) 
+            (0, 1),    # South (down)
+            (-1, 0)    # West (left)
         ]
-
+        
+        best_direction = None
+        best_total_grain = -1
+        
+        # Check each direction
         for dx, dy in directions:
-            for dist in range(1, self.vision + 1):
-                nx = self.x + dx * dist
-                ny = self.y + dy * dist
+            total_grain = self._grain_ahead(world, dx, dy)
+            
+            if total_grain > best_total_grain:
+                best_total_grain = total_grain
+                best_direction = (dx, dy)
+        
+        # Move one step in the best direction (if valid)
+        if best_direction:
+            new_x = self.x + best_direction[0]
+            new_y = self.y + best_direction[1]
+            
+            # Check boundaries
+            if 0 <= new_x < world.width and 0 <= new_y < world.height:
+                self.x = new_x
+                self.y = new_y
+        
+        # If no valid direction or best direction is blocked, stay in place
 
-                if 0 <= nx < world.width and 0 <= ny < world.height:
-                    patch = world.grid[ny][nx]
-                    grain = patch.get_grain_amount()
-                    candidates.append(((nx, ny), grain))
 
-        # Include current location as a candidate
-        current_grain = world.grid[self.y][self.x].get_grain_amount()
-        candidates.append(((self.x, self.y), current_grain))
-
-        max_grain = max(grain for _, grain in candidates)
-        best_positions = [pos for pos, grain in candidates if grain == max_grain]
-
-        self.x, self.y = choice(best_positions)
-
-    def harvest_and_eat(self, world: "World") -> None:
+    def _grain_ahead(self, world: "World", dx: int, dy: int) -> int:
         """
-        Harvest grain on current patch, add to wealth, then consume metabolism.
+        Sum all grain visible in a specific direction up to vision distance.
+        This replicates NetLogo's grain-ahead reporter.
+        
+        Args:
+            world: The world object
+            dx, dy: Direction vector (-1, 0, 1)
+            
+        Returns:
+            Total grain visible in this direction
         """
-        patch = world.grid[self.y][self.x]
-        gained = patch.harvest()
-        self.wealth += gained
+        total_grain = 0
+        
+        # Look ahead in this direction up to vision distance
+        for distance in range(1, self.vision + 1):
+            look_x = self.x + dx * distance
+            look_y = self.y + dy * distance
+            
+            # Check if position is within world bounds
+            if 0 <= look_x < world.width and 0 <= look_y < world.height:
+                patch = world.grid[look_y][look_x]
+                total_grain += patch.get_grain_amount()
+            else:
+                # Can't see outside world boundaries
+                break
+                
+        return total_grain
+    
+
+    def eat(self) -> None:
+        """
+        Consume metabolism amount of grain (separate from harvesting).
+        """
         self.wealth -= self.metabolism
 
     def increment_age(self) -> None:
@@ -81,13 +112,10 @@ class Turtle:
         """
         Returns True if the turtle has zero or negative wealth or exceeded life expectancy.
         """
-        return self.wealth <= 0 or self.age > self.life_expectancy
+        return self.wealth <= 0 or self.age >= self.life_expectancy
 
     def get_wealth_class_name(self) -> str:
         """
         Get the string representation of the turtle's wealth class.
-
-        Returns:
-            str: The wealth class name ('poor', 'middle_class', or 'rich')
         """
         return self.wealth_class.value

@@ -1,5 +1,5 @@
-from src.models.world import World
-from src.visualization.interactive_visualizer import create_interactive_simulation
+from models.world import World
+from visualization.interactive_visualizer import create_interactive_simulation
 
 def print_welcome():
     """Print welcome message."""

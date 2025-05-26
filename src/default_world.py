@@ -1,5 +1,6 @@
-from src.models.world import World
-from src.runner import run_simulation
+from models.world import World
+from runner import run_simulation
+
 
 def main():
     world = World()
