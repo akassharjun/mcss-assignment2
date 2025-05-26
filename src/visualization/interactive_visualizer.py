@@ -3,7 +3,7 @@ from matplotlib.widgets import Button, Slider
 from matplotlib.animation import FuncAnimation
 from typing import Dict
 
-from models.world import World
+from src.models.world import World
 
 
 class InteractiveWealthVisualizer:
@@ -63,14 +63,23 @@ class InteractiveWealthVisualizer:
         
         plt.rcParams['figure.raise_window'] = True
         
-        # Create the interface
-        self._create_interface(figsize)
         
-    def _create_interface(self, figsize):
+        if world.uniform_wealth_flag:
+            title = 'Uniform Wealth World Simulation'
+        elif world.inheritance_flag:
+            title = 'Inheritance World Simulation'
+        else:
+            title = 'Default World Simulation'
+            
+        # Create the interface
+        self._create_interface(figsize, title)
+        
+    def _create_interface(self, figsize, title):
         """Create the complete interface with plots and controls."""
         
         # Create figure with subplots
         self.fig, self.axes = plt.subplots(2, 2, figsize=figsize)
+        self.fig.canvas.manager.set_window_title(title)
         self.fig.suptitle('Interactive Wealth Distribution Simulation - NetLogo Style', 
                          fontsize=14, fontweight='bold')
         
@@ -399,6 +408,7 @@ class InteractiveWealthVisualizer:
         """Display the interactive interface and keep it open."""
         try:
             # Make sure the window is visible and stays open
+            plt.interactive(True)
             plt.show(block=True)
         except KeyboardInterrupt:
             print("\nInterface closed by user")

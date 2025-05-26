@@ -1,7 +1,5 @@
-from models.world import World
-from visualization.interactive_visualizer import create_interactive_simulation
-import sys
-
+from src.models.world import World
+from src.visualization.interactive_visualizer import create_interactive_simulation
 
 def print_welcome():
     """Print welcome message."""
@@ -19,15 +17,11 @@ def print_welcome():
     print()
 
 
-def main():
-    """Main function - creates interactive simulation interface."""
-    
+def run_simulation(world: World):
+    """Run function - creates interactive simulation interface."""
+
     print_welcome()
-    
-    # Initialize world
-    print("Initializing simulation world...")
-    world = World()
-    
+
     # Display world parameters
     print("World Parameters:")
     print(f"• Size: {world.width} × {world.height}")
@@ -37,38 +31,34 @@ def main():
     print(f"• Metabolism: 1-{world.max_metabolism}")
     print(f"• Life Expectancy: {world.min_life_expectancy}-{world.max_life_expectancy}")
     print()
-    
+
     # Create interactive interface
     print("Creating interactive interface...")
     print("The simulation window will open with START/STOP controls.")
     print("Click START to begin the simulation!")
     print()
-    
+
     try:
         # Create and show interactive visualizer
         visualizer = create_interactive_simulation(world)
-     
+
         print("Interface created successfully!")
         print("Controls:")
         print("• START/STOP: Begin/pause simulation")
-        print("• SETUP: Restart from beginning") 
+        print("• SETUP: Restart from beginning")
         print("• Speed slider: Control simulation speed")
         print("• Close window to exit")
         print()
         print("Opening simulation window... (this may take a moment)")
-        
+
         # Show the interface (this will block until window is closed)
         visualizer.show()
-        
+
     except Exception as e:
         print(f"Error creating interface: {e}")
         print("Try running with --help flag for usage information")
         import traceback
         traceback.print_exc()
-    
+
     finally:
         print("Simulation ended.")
-
-
-if __name__ == "__main__":
-        main()

@@ -26,7 +26,9 @@ class World:
             max_life_expectancy: int = 100,
             uniform_wealth: int = 50,
             max_grain=4,
-            grain_growth_interval: int = 4
+            grain_growth_interval: int = 4,
+            inheritance_flag: bool = False,
+            uniform_wealth_flag: bool = False,
     ):
         self.width = width
         self.height = height
@@ -47,8 +49,13 @@ class World:
         self.lorenz_list: List[List[float]] = []
         self.gini_list: List[float] = []
 
+        self.inheritance_flag = inheritance_flag
+        self.uniform_wealth_flag = uniform_wealth_flag
+
         self._init_grid()
         self._init_turtles()
+
+
 
     def _init_grid(self) -> None:
         """
@@ -84,16 +91,23 @@ class World:
 
         # Create all turtles first
         for i, (x, y) in enumerate(selected_positions):
-            turtle = self._init_turtle(i, x, y)
+            turtle = self._init_turtle(i, x, y, 0)
             self.turtles.append(turtle)
-        
+
         # After all turtles are created, classify them based on wealth distribution
         self.update_all_wealth_classes()
 
-    def _init_turtle(self, i, x, y) -> Turtle:
+    def _init_turtle(self, i, x, y, inheritance) -> Turtle:
         metabolism = randint(1, self.max_metabolism)
         vision = randint(1, self.max_vision)
         life_expectancy = randint(self.min_life_expectancy, self.max_life_expectancy)
+
+        if self.uniform_wealth_flag:
+            initial_wealth = self.uniform_wealth
+        elif inheritance > 0:
+            initial_wealth = inheritance
+        else:
+            initial_wealth = randint(metabolism, 50)
 
         turtle = Turtle(
             id=i,
@@ -102,7 +116,7 @@ class World:
             metabolism=metabolism,
             vision=vision,
             life_expectancy=life_expectancy,
-            initial_wealth=randint(metabolism, 50)
+            initial_wealth=initial_wealth,
         )
 
         return turtle
@@ -202,7 +216,7 @@ class World:
 
             pop_fraction = i / max_x
             wealth_fraction = acc_wealth / total_wealth
-            result.append((pop_fraction*100, wealth_fraction*100))
+            result.append((pop_fraction * 100, wealth_fraction * 100))
 
         return result
 
@@ -254,7 +268,7 @@ class World:
         return [turtle for turtle in self.turtles if turtle.wealth_class == wealth_class]
 
     def tick(self, tick_count: int) -> dict:
-    # patch actions
+        # patch actions
         if tick_count % self.grain_growth_interval == 0:
             for coord in self.grid:
                 for patch in coord:
@@ -266,10 +280,15 @@ class World:
             turtle.move(self)
             turtle.harvest_and_eat(self)
             turtle.increment_age()
-            
+
             if turtle.is_dead():
                 self.turtles.remove(turtle)
-                turtle = self._init_turtle(turtle.id, turtle.x, turtle.y)
+
+                if self.inheritance_flag and turtle.wealth > 0:
+                    turtle = self._init_turtle(turtle.id, turtle.x, turtle.y, turtle.wealth)
+                else:
+                    turtle = self._init_turtle(turtle.id, turtle.x, turtle.y, 0)
+
                 self.turtles.append(turtle)
 
         # Update wealth classes after all turtles have acted
