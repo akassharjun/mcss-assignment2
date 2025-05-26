@@ -349,6 +349,27 @@ class World:
                 # Patch is now empty
                 patch.current_grain = 0
 
+    def _calculate_offspring_wealth(self, dead_turtle) -> int:
+        """
+        Offspring has random amount of grain, ranging from the 
+        poorest person's amount of grain to the richest person's amount of grain"
+        """
+        
+        # Get remaining living turtles (excluding the one that just died)
+        living_turtles = [t for t in self.turtles if t != dead_turtle]
+        
+        if not living_turtles:
+            return randint(1, 50)
+        
+        # Get wealth range from current population
+        wealth_values = [t.wealth for t in living_turtles]
+
+        min_wealth = int(min(wealth_values))
+        max_wealth = int(max(wealth_values))
+        
+        # NetLogo behavior: random between min and max of population
+        return randint(max(0, min_wealth), max(1, max_wealth))
+
     def tick(self, tick_count: int) -> dict:
         """
         Execute one simulation step following NetLogo order of operations.
@@ -373,14 +394,10 @@ class World:
         # 4. Death and rebirth phase
         for turtle in dead_turtles:
             self.turtles.remove(turtle)
-            # Create new turtle at random location (not inherited position)
-            new_x = randint(0, self.width - 1)
-            new_y = randint(0, self.height - 1)
 
-            if self.inheritance_flag and turtle.wealth > 0:
-                new_turtle = self._init_turtle(turtle.id, new_x, new_y, turtle.wealth)
-            else:
-                new_turtle = self._init_turtle(turtle.id, new_x, new_y, 0)
+            offspring_wealth = self._calculate_offspring_wealth(turtle) if self.inheritance_flag else 0
+
+            new_turtle = self._init_turtle(turtle.id, turtle.x, turtle.y, offspring_wealth)
 
             self.turtles.append(new_turtle)
 
