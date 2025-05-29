@@ -24,9 +24,8 @@ def run_batch_simulations(
         'max_wealth',
         'total_wealth',
         'gini_index',
-        'num_poor',
-        'num_middle_class',
-        'num_rich'
+        'lorenz_list',
+        'wealth_classes'
     ]
 
     with open(output_csv, 'w', newline='') as csvfile:
@@ -37,20 +36,8 @@ def run_batch_simulations(
             world = World(**world_kwargs)
 
             for tick in range(num_ticks):
-                world.tick(tick)
+                result = world.tick(tick)
 
-            wealth_classes = world.get_wealth_class_distribution()
-
-            result = {
-                'run_id': run_id,
-                'min_wealth': world.get_min_wealth(),
-                'max_wealth': world.get_max_wealth(),
-                'total_wealth': world.get_total_wealth(),
-                'gini_index': world.calculate_gini_index(),
-                'num_poor': wealth_classes.get('poor', 0),
-                'num_middle_class': wealth_classes.get('middle_class', 0),
-                'num_rich': wealth_classes.get('rich', 0)
-            }
 
             writer.writerow(result)
 
