@@ -1,5 +1,61 @@
 from models.world import World
 from visualization.interactive_visualizer import create_interactive_simulation
+import csv
+
+# Runs batch simulations and saves results in a CSV file
+def run_batch_simulations(
+    output_csv: str,
+    num_runs: int,
+    num_ticks: int,
+    world_kwargs: dict
+) -> None:
+    """
+    Run multiple simulations and save summary stats to a CSV file.
+
+    Args:
+        output_csv (str): Path to output CSV file.
+        num_runs (int): Number of simulation runs.
+        num_ticks (int): Number of ticks per run.
+        world_kwargs (dict): Parameters to initialize each World.
+    """
+    fieldnames = [
+        'run_id',
+        'min_wealth',
+        'max_wealth',
+        'total_wealth',
+        'gini_index',
+        'num_poor',
+        'num_middle_class',
+        'num_rich'
+    ]
+
+    with open(output_csv, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for run_id in range(1, num_runs + 1):
+            world = World(**world_kwargs)
+
+            for tick in range(num_ticks):
+                world.tick(tick)
+
+            wealth_classes = world.get_wealth_class_distribution()
+
+            result = {
+                'run_id': run_id,
+                'min_wealth': world.get_min_wealth(),
+                'max_wealth': world.get_max_wealth(),
+                'total_wealth': world.get_total_wealth(),
+                'gini_index': world.calculate_gini_index(),
+                'num_poor': wealth_classes.get('poor', 0),
+                'num_middle_class': wealth_classes.get('middle_class', 0),
+                'num_rich': wealth_classes.get('rich', 0)
+            }
+
+            writer.writerow(result)
+
+    print(f"✅ Completed {num_runs} simulations. Results saved to: {output_csv}")
+
 
 def print_welcome():
     """Print welcome message."""
@@ -17,7 +73,7 @@ def print_welcome():
     print()
 
 
-def run_simulation(world: World):
+def run_simulation_gui(world: World):
     """Run function - creates interactive simulation interface."""
 
     print_welcome()
