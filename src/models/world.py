@@ -50,7 +50,6 @@ class World:
         self.turtles: List[Turtle] = []
         self.current_tick: int = 0
         self.lorenz_list: List[List[float]] = []
-        self.gini_list: List[float] = []
 
         self.inheritance_flag = inheritance_flag
         self.uniform_wealth_flag = uniform_wealth_flag
@@ -396,6 +395,9 @@ class World:
         total_wealth = self.get_total_wealth()
         max_wealth = self.get_max_wealth()
         min_wealth = self.get_min_wealth()
+        
+        wealth_classes = self.get_wealth_class_distribution()
+        
 
         return {
             'min_wealth': min_wealth,
@@ -403,5 +405,7 @@ class World:
             'max_wealth': max_wealth,
             'gini_index': self.calculate_gini_index(),
             'lorenz_list': self.calculate_lorenz_list(total_wealth),
-            'wealth_classes' : self.get_wealth_class_distribution()
+            'poor' : wealth_classes['poor'],
+            'middle_class' : wealth_classes['middle_class'],
+            'rich' : wealth_classes['rich']
         }
