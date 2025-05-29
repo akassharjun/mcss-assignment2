@@ -1,9 +1,7 @@
-from models.world import World
-from runner import run_simulation_gui, run_batch_simulations
+from runner import run_batch_simulations
 
 
 def main():
-
     params = {
         'width': 51,
         'height': 51,
@@ -23,12 +21,10 @@ def main():
 
     run_batch_simulations(
         output_csv="default_world_results.csv",
-        num_runs=1000,
+        num_runs=10000,
         num_ticks=1000,
         world_kwargs=params
     )
 
-    # world = World()
-    # run_simulation_gui(world)
 if __name__ == "__main__":
     main()

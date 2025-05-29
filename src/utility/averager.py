@@ -59,8 +59,7 @@ def calculate_and_display_averages(df: pd.DataFrame, num_turtles: int = 250):
                     all_lorenz_y_values_at_x[x_val].append(y_val)
             else:
                 print(f"Warning: Lorenz curve X-coordinates mismatch or not set for run_id {row.get('run_id', index)}. Skipping this run for Lorenz averaging.")
-                # For robust averaging with mismatched X, interpolation would be needed.
-                # For simplicity, this example assumes consistent X for direct averaging.
+                continue
 
         except (ValueError, SyntaxError) as e:
             print(f"Error parsing lorenz_list for run_id {row.get('run_id', index)}: {e}. Skipping.")
@@ -81,9 +80,6 @@ def calculate_and_display_averages(df: pd.DataFrame, num_turtles: int = 250):
             if y_values_for_x:
                 average_lorenz_y.append(np.mean(y_values_for_x))
                 lorenz_y_std_dev.append(np.std(y_values_for_x))
-            else: # Should not happen if populated correctly
-                average_lorenz_y.append(None)
-                lorenz_y_std_dev.append(None)
 
         # Filter out None if any issues occurred
         valid_indices = [i for i, y in enumerate(average_lorenz_y) if y is not None]
@@ -95,10 +91,6 @@ def calculate_and_display_averages(df: pd.DataFrame, num_turtles: int = 250):
         if plot_x and plot_y_avg:
             plt.figure(figsize=(8, 6))
             plt.plot(plot_x, plot_y_avg, label='Average Lorenz Curve', color='blue', marker='.')
-            # Optional: Plot standard deviation bands
-            # lower_bound = np.array(plot_y_avg) - np.array(plot_y_std)
-            # upper_bound = np.array(plot_y_avg) + np.array(plot_y_std)
-            # plt.fill_between(plot_x, lower_bound, upper_bound, color='blue', alpha=0.2, label='±1 Std Dev')
 
             # Line of perfect equality
             plt.plot([0, 100], [0, 100], label='Line of Perfect Equality', color='red', linestyle='--')
@@ -112,31 +104,10 @@ def calculate_and_display_averages(df: pd.DataFrame, num_turtles: int = 250):
             plt.grid(True)
             plt.show()
             print("Average Lorenz Curve plotted.")
-        else:
-            print("Could not generate average Lorenz curve due to lack of valid data points.")
-    else:
-        print("Not enough data or consistent X-coordinates to calculate average Lorenz curve.")
-
-# --- How to use it ---
-# 1. Load your data into a pandas DataFrame.
-#    For example, if your data is in 'simulation_results.csv':
-#    df_results = pd.read_csv('simulation_results.csv')
-#
-#    Or, if you have it as a string like in the previous example:
-#    from io import StringIO
-#    csv_data_string = """run_id,min_wealth,max_wealth,total_wealth,gini_index,lorenz_list,poor,middle_class,rich
-#    1,0.66...,"[(0.0,0.0)...]",210,36,4
-#    ... (rest of your data) ...
-#    """
-#    df_results = pd.read_csv(StringIO(csv_data_string))
 
 
-# --- Create a dummy DataFrame for demonstration as requested ---
-# In a real scenario, df_results would be loaded from your CSV file.
-df_results = pd.read_csv('uniform_world_results.csv')
 
-# 2. Call the function
-TOTAL_TURTLES = 250 # Make sure this matches your simulation setup
-calculate_and_display_averages(df_results, num_turtles=TOTAL_TURTLES)
+df_results = pd.read_csv('default_world_results.csv')
 
-print("\nThank you for using the simulation data analyzer!")
+calculate_and_display_averages(df_results)
+

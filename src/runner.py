@@ -1,4 +1,3 @@
-from visualization.interactive_visualizer import create_interactive_simulation
 from models.world import World
 import csv
 import time
@@ -56,19 +55,6 @@ def run_batch_simulations(
     start_time = time.time()
 
     with Pool(processes=num_processes) as pool:
-        # Use imap_unordered for potentially better progress reporting if desired,
-        # as results come in as they are completed.
-        # Or stick with map if strict order of results (before sorting) is important.
-        # For this logging, map is fine.
-
-        # If you want to see progress as tasks complete (more complex to manage logs nicely):
-        # results_iterator = pool.imap_unordered(_run_single_simulation_for_batch, tasks)
-        # completed_count = 0
-        # for result_dict in results_iterator:
-        #     all_run_results.append(result_dict)
-        #     completed_count += 1
-        #     print(f"📊 Progress: {completed_count}/{num_runs} runs completed.")
-        # else: just use map
         all_run_results = pool.map(_run_single_simulation_for_batch, tasks)
 
     end_time = time.time()
@@ -84,66 +70,3 @@ def run_batch_simulations(
 
     print(f"✅ Results for {num_runs} simulations saved to: {output_csv}")
 
-
-def print_welcome():
-    """Print welcome message."""
-    print("=" * 60)
-    print("INTERACTIVE WEALTH DISTRIBUTION SIMULATION")
-    print("NetLogo-Style Interface with Start/Stop Controls")
-    print("=" * 60)
-    print()
-    print("Features:")
-    print("• Real-time visualization with four plots")
-    print("• START/STOP button control")
-    print("• Speed control slider")
-    print("• RESET button to restart simulation")
-    print("• Interactive NetLogo-style interface")
-    print()
-
-
-def run_simulation_gui(world: World):
-    """Run function - creates interactive simulation interface."""
-
-    print_welcome()
-
-    # Display world parameters
-    print("World Parameters:")
-    print(f"• Size: {world.width} × {world.height}")
-    print(f"• Population: {world.num_turtles} turtles")
-    print(f"• Best Land: {world.percent_best_land * 100:.1f}%")
-    print(f"• Vision: 1-{world.max_vision}")
-    print(f"• Metabolism: 1-{world.max_metabolism}")
-    print(
-        f"• Life Expectancy: {world.min_life_expectancy}-{world.max_life_expectancy}")
-    print()
-
-    # Create interactive interface
-    print("Creating interactive interface...")
-    print("The simulation window will open with START/STOP controls.")
-    print("Click START to begin the simulation!")
-    print()
-
-    try:
-        # Create and show interactive visualizer
-        visualizer = create_interactive_simulation(world)
-
-        print("Interface created successfully!")
-        print("Controls:")
-        print("• START/STOP: Begin/pause simulation")
-        print("• SETUP: Restart from beginning")
-        print("• Speed slider: Control simulation speed")
-        print("• Close window to exit")
-        print()
-        print("Opening simulation window... (this may take a moment)")
-
-        # Show the interface (this will block until window is closed)
-        visualizer.show()
-
-    except Exception as e:
-        print(f"Error creating interface: {e}")
-        print("Try running with --help flag for usage information")
-        import traceback
-        traceback.print_exc()
-
-    finally:
-        print("Simulation ended.")

@@ -192,7 +192,7 @@ class World:
 
         if self.uniform_wealth_flag:
             initial_wealth = self.uniform_wealth
-        elif inheritance > 0:
+        elif self.inheritance_flag and inheritance > 0:
             initial_wealth = inheritance
         else:
             initial_wealth = metabolism + randint(0, 50)
@@ -363,24 +363,19 @@ class World:
         self.harvest_grain()
 
         # 3. Eating and aging phase
-        dead_turtles = []
         for turtle in list(self.turtles):
             turtle.eat()  # Consume metabolism
             turtle.increment_age()
 
             if turtle.is_dead():
-                dead_turtles.append(turtle)
+                  self.turtles.remove(turtle)
 
-        # 4. Death and rebirth phase
-        for turtle in dead_turtles:
-            self.turtles.remove(turtle)
+                  offspring_wealth = turtle.wealth
 
-            offspring_wealth = turtle.wealth if self.inheritance_flag and turtle.wealth > 0 else 0
+                  new_turtle = self._init_turtle(
+                  turtle.id, turtle.x, turtle.y, offspring_wealth)
 
-            new_turtle = self._init_turtle(
-                turtle.id, turtle.x, turtle.y, offspring_wealth)
-
-            self.turtles.append(new_turtle)
+                  self.turtles.append(new_turtle)
 
         # 5. Patch grain growth
         if tick_count % self.grain_growth_interval == 0:
