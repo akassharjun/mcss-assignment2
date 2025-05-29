@@ -187,6 +187,10 @@ python src/simulation_runner.py --scenario uniform --ticks 1000 --runs 100
 # - Results exported to results/ directory
 ```
 
+### Quick Analysis of results
+
+Run the `utility/averager.py` script to calculate and display the averaged values from your simulation results. This script requires `pandas` to be installed, and you will need to provide the path to your CSV results file (e.g., `/path/to/your/results.csv`).
+
 ## 🎯 Key Findings
 
 1. **Successful Replication**: Python model reproduces NetLogo inequality emergence
