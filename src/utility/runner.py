@@ -24,7 +24,7 @@ def _run_single_simulation_for_batch(args):
 
     final_result_from_tick['run_id'] = run_id
     
-    print(f"🏁 [{process_name} - PID:{pid}] Finished Run ID: {run_id}.") # Log finish
+    print(f"[{process_name} - PID:{pid}] Finished Run ID: {run_id}.") # Log finish
     return final_result_from_tick
 
 def run_batch_simulations(
@@ -49,7 +49,7 @@ def run_batch_simulations(
         num_processes = num_runs
 
     print(
-        f"🚀 Starting {num_runs} parallel simulation runs over {num_ticks} ticks each, using {num_processes} processes...")
+        f"Starting {num_runs} parallel simulation runs over {num_ticks} ticks each, using {num_processes} processes...")
 
     all_run_results = []
     start_time = time.time()
@@ -59,7 +59,7 @@ def run_batch_simulations(
 
     end_time = time.time()
     print(
-        f"\n🎉 All parallel runs completed in {end_time - start_time:.2f} seconds.")
+        f"\nAll parallel runs completed in {end_time - start_time:.2f} seconds.")
 
     with open(output_csv, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -68,5 +68,5 @@ def run_batch_simulations(
             for result_dict in sorted(all_run_results, key=lambda x: x['run_id']):
                 writer.writerow(result_dict)
 
-    print(f"✅ Results for {num_runs} simulations saved to: {output_csv}")
+    print(f"Results for {num_runs} simulations saved to: {output_csv}")
 
